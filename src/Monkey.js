@@ -19,7 +19,8 @@ class Monkey {
     this.options = options || {}
     this._apkPath = options.apkPath || ''
     this._setup = options.setup || []
-    this._actionCount = options.action_count || 10
+    this._actionCount = options.action_count || 1
+    this._strategy = options.strategy || 'simpleDFS'
 
     this._apk = undefined
     this._restartAction = undefined
@@ -144,6 +145,7 @@ class Monkey {
 
   async getCurrentState() {
     const currentActivity = await this.device.getCurrentActivity()
+    console.log(currentActivity)
     const currentPackage = await this.device.getCurrentPackageName()
     // const actions = await this.device.getAvaliableActions()
     const actions = await this.device.getUIActions()

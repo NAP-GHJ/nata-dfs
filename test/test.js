@@ -1,13 +1,17 @@
 //const DFSMonkey =require('../lib/DFSMonkey.js')
 
-import DFSMonkey from '../src/DFSMonkey.js'
+const DFSMonkey = require('../')
 
-const pkg = 'com.cvicse.zhnt'
-  //const deviceId = 'DU2SSE1478031311'
-const deviceId = 'd53ef30'
-const act = '.LoadingActivity'
-let monkey
+const pkg = 'com.zte.heartyservice'
+const act = 'com.zte.heartyservice.main.HeartServiceActivity'
+  
+const deviceId = 'ZTEBV0730'
 
-monkey = new DFSMonkey(pkg, act, deviceId)
+//let monkey = new DFSMonkey(pkg, act, deviceId)
 
-console.log('Hello')
+let monkey = new DFSMonkey( deviceId,pkg, act,
+    {action_count:30,setup:[]})
+
+  monkey.play().then(()=>{
+    console.log('Done')
+  })

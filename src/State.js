@@ -69,10 +69,12 @@ class State {
   }
 
   equals(oState) {
+    //console.log("进入状态判断")
     if (oState === null) {
       return false
     }
     if (this === oState) {
+      //console.log("状态相等")
       return true
     }
     if (!(oState instanceof State)) {
@@ -98,11 +100,16 @@ class State {
       }
 
       const rate = (count / this.actions.length)
-      if (rate < 0.5) {
+      if (rate < 0.3) {
+        //console.log('状态相等0.5')
         return true
       }
+      //else console.log("状态不相等0.5")
     }
-
+    else {
+      //console.log("状态不相等activity")
+      //console.log(this.act+" "+oState.act);
+    }
     return false
   }
 

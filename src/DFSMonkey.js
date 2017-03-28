@@ -1,8 +1,13 @@
 import Monkey from './Monkey'
+import Strategy from './Strategy'
 
 import _ from 'lodash'
 import Edge from './Edge.js'
 import State from './State.js'
+
+import SimpleDFS from './SimpleDFS.js'
+import AdvancedDFS from './AdvancedDFS.js'
+import StrategySelector from './StrategySelector.js'
 
 
 class DFSMonkey extends Monkey {
@@ -28,11 +33,17 @@ class DFSMonkey extends Monkey {
 
     //const ccInterval = this.collectCoverage()
 
-    //console.log('setup...')
-    await this.setUp()
-
     // start app
     await this.startApp()
+    
+    //setup the app
+    await this.setUp()
+
+    // set time out for one second
+    // setTimeout(function() {
+    //   console.log("Settimeout to wait the app stable")
+    // }, 3000);
+    await this.wait(2000)
 
     // record current state
     this.rootState = await this.getCurrentState()
@@ -40,14 +51,32 @@ class DFSMonkey extends Monkey {
     this.addNode(this.rootState)
 
     // start loop
-    while (this.flag && !(this.curState.fromEdge == null && !this.curState.isNotOver())) {
+    while (this.flag && !(this.curState.fromEdge == null &&!this.curState.isNotOver())) {
       if (this._stopFlag) {
         break
       }
 
-      const action = this.curState.getNextAction()
+      
+      //const action = this.curState.getNextAction()
+      //const action = Strategy.simpleDFS(this.curState)
+
+      /*Use different Strategies */
+      let action ;
+      if(this._strategy == 'simpleDFS'){
+        const strategy = new StrategySelector(new SimpleDFS(this.curState))
+        action = strategy.selector()
+      }else if(this._strategy == 'advancedDFS'){
+        const strategy = new StrategySelector(new AdvancedDFS(this.curState))
+        action = strategy.selector()
+      }else{
+        console.log('Default to simpleDFS');
+        const strategy = new StrategySelector(new SimpleDFS(this.curState))
+        action = strategy.selector()
+      }
+
 
       if (action === null) {
+        //console.log("该状态下的动作执行结束进行回溯")
         this.flag = await this.goBack()
         continue
       }
@@ -60,6 +89,8 @@ class DFSMonkey extends Monkey {
 
       switch (kind) {
         case State.Types.OLD:
+          console.log("old state")
+          // break;
         case State.Types.OUT:
           this.currentActions.push(action)
           this.addNode(tempNode)
@@ -67,13 +98,13 @@ class DFSMonkey extends Monkey {
           this.flag = await this.goBack()
           break
         case State.Types.SAME:
-          // console.log('same state')
+          console.log('same state')
           break
         default:
           this.currentActions.push(action)
           this.addNode(tempNode)
           this.curState = tempNode
-          // console.log('new state')
+          console.log('new state')
           break
       }
     }
@@ -109,6 +140,7 @@ class DFSMonkey extends Monkey {
 
 //回溯的过程
   async goBack() {
+    console.log("进行一次回溯")
     const ee = this.curState.fromEdge
     if (ee !== null) {
       this.curState = ee.fromState
@@ -129,6 +161,7 @@ class DFSMonkey extends Monkey {
       }
       // attempt to one step back
       if (edgesStack.length > 2) {
+        console.log("Length 大于2  BACK")
         await this.executeAction(this.backAction)
       }
 
@@ -138,6 +171,7 @@ class DFSMonkey extends Monkey {
         return true
       }//
 
+      console.log("进行试探性回溯")
       let index = -1
       const len = nodesStack.length
       for (let j = 0; j < len; j++) {
@@ -163,6 +197,7 @@ class DFSMonkey extends Monkey {
 
       tempState = await this.getCurrentState()
       if (this.curState.equals(tempState)) {
+        console.log("回溯成功")
         return true
       }
       return await this.goBack()
@@ -185,6 +220,7 @@ class DFSMonkey extends Monkey {
       // find if old state
       let index = -1
       const len = this.nodes.length
+      console.log("nodes len "+len)
       for (let j = 0; j < len; j++) {
         if (this.nodes[j].equals(state)) {
           index = j
